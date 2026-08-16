@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from app.auth import get_current_user, upsert_user
+from app.schemas.user import User
 
 app = FastAPI(
     title="Journal App Backend",
@@ -21,3 +23,13 @@ app.add_middleware(
 async def health_check():
     """Health check endpoint to verify the service is running."""
     return {"status": "healthy", "service": "journal-app-backend"}
+
+
+@app.get("/me", response_model=User)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """
+    Get current authenticated user's profile.
+    Upserts user into database on first call.
+    """
+    await upsert_user(current_user)
+    return current_user
