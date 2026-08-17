@@ -142,7 +142,7 @@ body {
 .page-frame {
   width: calc(100% - 2 * var(--page-margin));
   max-width: 390px;
-  min-height: calc(100dvh - 2 * var(--page-margin));
+  min-height: calc(100dvh - 2 * var(--page-margin) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   margin: var(--page-margin) auto;
   position: relative;
 }

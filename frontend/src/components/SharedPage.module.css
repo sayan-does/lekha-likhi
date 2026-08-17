@@ -12,6 +12,6 @@
 }
 
 .pageFrame {
-  height: calc(100dvh - 2 * var(--page-margin));
+  height: calc(100dvh - 2 * var(--page-margin) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   padding-bottom: calc(var(--rule-unit) * 4 + env(safe-area-inset-bottom, 0px));
 }

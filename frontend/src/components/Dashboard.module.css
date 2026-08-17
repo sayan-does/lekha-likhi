@@ -1,5 +1,5 @@
 .frame {
-  height: calc(100dvh - 2 * var(--page-margin));
+  height: calc(100dvh - 2 * var(--page-margin) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
 }
 
 .stage {
