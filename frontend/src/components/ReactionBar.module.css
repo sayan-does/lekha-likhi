@@ -6,7 +6,7 @@
   z-index: 20;
   display: flex;
   justify-content: center;
-  padding: 0 var(--page-margin) var(--spacing-gutter);
+  padding: 0 var(--page-margin) calc(var(--spacing-gutter) + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
 }
 
