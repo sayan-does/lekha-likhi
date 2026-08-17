@@ -1,29 +1,47 @@
 import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { checkApiHealth } from '../api/config';
 import PaperSurface from './PaperSurface';
+import CoverShell from './CoverShell';
+import Logo from './Logo';
 import styles from './AuthGate.module.css';
 
-export default function AuthGate({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default function AuthGate() {
+  const { isAuthenticated, isReady, login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError(null);
     setIsLoading(true);
-    setTimeout(() => {
+
+    const healthy = await checkApiHealth();
+    if (!healthy) {
+      setError(
+        'Cannot reach the backend. Start it with: cd backend && uvicorn app.main:app --port 8000',
+      );
       setIsLoading(false);
-      setIsAuthenticated(true);
-    }, 1000);
+      return;
+    }
+
+    login();
   };
+
+  if (!isReady) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return (
-      <div className={`cover ${styles.shell}`}>
+      <CoverShell className={styles.shell} contentClassName={styles.shellContent}>
         <div className={styles.pageSlot}>
           <PaperSurface pageSeed="auth">
             <div className={styles.body}>
               <header className={styles.header}>
-                <h1 className={`display-lg ${styles.title}`}>Lekha Likhi</h1>
+                <h1 className={styles.title}>
+                  <Logo className={styles.logo} />
+                </h1>
                 <p className={`body-md ${styles.tagline}`}>
                   Open your notebook to begin writing.
                 </p>
@@ -63,9 +81,9 @@ export default function AuthGate({ children }) {
             </div>
           </PaperSurface>
         </div>
-      </div>
+      </CoverShell>
     );
   }
 
-  return children;
+  return <Outlet />;
 }

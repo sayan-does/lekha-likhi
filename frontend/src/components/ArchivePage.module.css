@@ -1,0 +1,91 @@
+.root {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scroll {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  padding: var(--page-margin);
+  padding-bottom: calc(var(--page-margin) + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: var(--rule-unit);
+}
+
+.back {
+  color: color-mix(in srgb, var(--color-inverse-on-surface) 85%, transparent);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--spacing-gutter);
+}
+
+.title {
+  color: var(--color-inverse-on-surface);
+  font-style: italic;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-gutter);
+  margin: 0;
+  padding: 0;
+}
+
+.loading,
+.empty {
+  color: color-mix(in srgb, var(--color-inverse-on-surface) 70%, transparent);
+  font-style: italic;
+  text-align: center;
+  margin-top: var(--rule-unit);
+}
+
+.confirmBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-margin);
+  background-color: color-mix(in srgb, var(--cover) 55%, transparent);
+}
+
+.confirmScrap {
+  width: 100%;
+  max-width: 320px;
+  padding: var(--rule-unit) var(--page-margin);
+  background-color: var(--color-surface-container-high);
+  border: 1.5px solid var(--color-outline);
+}
+
+.confirmText {
+  color: var(--color-on-surface);
+  text-align: center;
+  margin-bottom: var(--rule-unit);
+}
+
+.confirmActions {
+  display: flex;
+  gap: var(--spacing-gutter);
+  justify-content: center;
+}
+
+.confirmCancel,
+.confirmDelete {
+  padding: calc(var(--spacing-gutter) / 2) var(--spacing-gutter);
+  border: 1.5px solid var(--color-outline);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+
+.confirmDelete {
+  color: var(--color-stamp-red);
+  border-color: color-mix(in srgb, var(--color-stamp-red) 50%, transparent);
+}

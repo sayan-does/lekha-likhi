@@ -10,6 +10,30 @@
   pointer-events: none;
 }
 
+.embedded {
+  position: static;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.embedded .scrap {
+  filter: none;
+  clip-path: none;
+  background: none;
+  padding: 0;
+}
+
+.embedded .strip {
+  clip-path: none;
+  background: none;
+  padding: 0;
+}
+
+.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .scrap {
   pointer-events: auto;
   width: 100%;

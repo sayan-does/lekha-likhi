@@ -4,11 +4,15 @@ import styles from './PageStack.module.css';
 
 const DATE_FORMAT = { month: 'long', day: 'numeric' };
 
-function formatEntryDate(iso) {
+export function formatEntryDate(iso) {
   const [year, month, day] = iso.split('-').map(Number);
   return new Intl.DateTimeFormat(undefined, DATE_FORMAT).format(
     new Date(year, month - 1, day),
   );
+}
+
+export function findIndexById(entries, id) {
+  return entries.findIndex((entry) => entry.id === id);
 }
 
 const SWIPE_THRESHOLD = 50;
@@ -20,6 +24,11 @@ export default function PageStack({
   onIndexChange,
   onEntryChange,
   autoFocusId,
+  shareControls,
+  initialCaret,
+  initialScrollTop,
+  onCaretChange,
+  onScrollChange,
 }) {
   const containerRef = useRef(null);
   const pointerRef = useRef(null);
@@ -133,6 +142,11 @@ export default function PageStack({
               isEditMode={index === activeIndex}
               autoFocus={entry.id === autoFocusId}
               onChange={(content) => onEntryChange(index, content)}
+              shareControls={index === activeIndex ? shareControls : undefined}
+              initialCaret={index === activeIndex ? initialCaret : null}
+              initialScrollTop={index === activeIndex ? initialScrollTop : 0}
+              onCaretChange={index === activeIndex ? onCaretChange : undefined}
+              onScrollChange={index === activeIndex ? onScrollChange : undefined}
             />
           </div>
         );

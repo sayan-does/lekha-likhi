@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap');
+
+@font-face {
+  font-family: 'Rajnigandha';
+  src: url('../assets/Rajnigandha/Rajnigandha ANSI.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0980-09FF;
+}
 
 :root {
   /* Colors */
@@ -50,6 +59,7 @@
   --color-on-background: #1f1c0b;
   --color-surface-variant: #ebe2c8;
   --color-ink: #1A2433;
+  --color-pen-ink: #1e56b8;
   --color-oxidation: #D9C5A0;
   --color-stamp-red: #8C4646;
   --color-highlighter: #F0E68C;
@@ -59,6 +69,8 @@
 
   /* Typography */
   --font-family: 'Literata', serif;
+  --font-handwriting: 'Caveat', cursive;
+  --font-bengali: 'Rajnigandha', var(--font-handwriting), cursive;
   --font-size-display-lg: 32px;
   --font-weight-display-lg: 600;
   --line-height-display-lg: 40px;
@@ -118,33 +130,54 @@ body {
   height: 100%;
 }
 
-/* Dark leather cover: full viewport, sepia vignette (no black), faint grain */
+/* Leather texture backdrop — landing, archive, writer shell, sign-in, shared */
 .cover {
   min-height: 100dvh;
+  height: 100dvh;
   width: 100%;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background-color: var(--cover);
+  background-color: #2a2418;
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, transparent 58%, rgba(20, 14, 6, 0.42) 100%),
+    linear-gradient(180deg, rgba(255, 236, 200, 0.14) 0%, transparent 32%),
+    radial-gradient(
+      ellipse 85% 60% at 50% 38%,
+      rgba(255, 249, 237, 0.1) 0%,
+      transparent 60%
+    ),
     radial-gradient(
       ellipse at center,
-      rgba(53, 48, 30, 0) 38%,
-      rgba(42, 36, 20, 0.35) 72%,
-      rgba(32, 28, 16, 0.62) 100%
+      transparent 32%,
+      rgba(53, 48, 30, 0.32) 72%,
+      rgba(18, 14, 8, 0.62) 100%
     ),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.07'/%3E%3C/svg%3E");
-  background-repeat: no-repeat, repeat;
-  background-size: 100% 100%, 180px 180px;
+    linear-gradient(
+      145deg,
+      rgba(107, 93, 62, 0.22) 0%,
+      rgba(53, 48, 30, 0.1) 50%,
+      rgba(70, 16, 19, 0.18) 100%
+    ),
+    var(--cover-texture);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 180px 180px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, cover;
+  background-position: center, center, center, center, center, center, center;
+  overflow: hidden;
 }
 
 /* Mobile-first paper slot — the edge of the book */
 .page-frame {
   width: calc(100% - 2 * var(--page-margin));
   max-width: 390px;
-  min-height: calc(100dvh - 2 * var(--page-margin) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   margin: var(--page-margin) auto;
   position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
 ::selection {

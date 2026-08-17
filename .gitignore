@@ -51,3 +51,8 @@ htmlcov/
 
 # Logs
 *.log
+
+
+docs/
+frontend/e2e
+frontend/node_modules

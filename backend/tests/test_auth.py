@@ -1,9 +1,16 @@
-import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 from jose import jwt
 from datetime import datetime, timedelta
 from uuid import uuid4
+import os
+
+# Set environment variables before importing app modules
+os.environ["SUPABASE_URL"] = "https://test.supabase.co"
+os.environ["SUPABASE_JWT_SECRET"] = "test-secret"
+os.environ["UPSTASH_REDIS_URL"] = "https://test.upstash.io"
+os.environ["UPSTASH_REDIS_TOKEN"] = "test-token"
+
 from app.main import app
 from app.config import settings
 

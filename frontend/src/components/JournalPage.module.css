@@ -7,13 +7,69 @@
   padding-left: var(--margin-inset);
 }
 
+.dateRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-gutter);
+  margin: 0 0 var(--rule-unit);
+  padding-right: var(--spacing-gutter);
+}
+
 .date {
   color: var(--color-stamp-red);
   font-style: italic;
-  text-align: right;
-  margin: 0 0 var(--rule-unit);
+  text-align: left;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
   transform: rotate(-1.5deg);
-  transform-origin: right center;
+  transform-origin: left center;
+}
+
+.shareAnchor {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.shareStamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-ink);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  transform: rotate(-2deg);
+}
+
+.shareStamp:active {
+  transform: rotate(-2deg) translate(1px, 1px);
+}
+
+.shareStampLabel {
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.linkDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.reactionBadge {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  min-width: 14px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--color-highlighter) 75%, transparent);
+  color: var(--color-ink);
 }
 
 .body,
@@ -22,11 +78,16 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  color: var(--color-ink);
+  font-family: var(--font-bengali);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--color-pen-ink);
   text-align: left;
   line-height: var(--rule-unit);
   white-space: pre-wrap;
   overflow-wrap: break-word;
+  text-shadow: 0.2px 0.3px 0.45px color-mix(in srgb, var(--color-pen-ink) 35%, transparent);
 }
 
 .body {
@@ -44,7 +105,7 @@
   outline: none;
   box-shadow: none;
   appearance: none;
-  caret-color: var(--color-ink);
+  caret-color: var(--color-pen-ink);
   field-sizing: content;
 }
 
@@ -55,5 +116,5 @@
 }
 
 .prompt {
-  color: var(--color-on-surface-variant);
+  color: color-mix(in srgb, var(--color-pen-ink) 42%, transparent);
 }

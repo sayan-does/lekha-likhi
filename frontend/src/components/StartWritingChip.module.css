@@ -1,0 +1,37 @@
+.chip {
+  flex-shrink: 0;
+  width: 56px;
+  min-height: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 6px;
+  color: var(--color-primary);
+  background-color: var(--color-surface-container-low);
+  border: 1.5px dashed var(--color-outline);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-secondary) 20%, transparent);
+}
+
+.chip:active {
+  transform: translate(1px, 1px);
+}
+
+.plus {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--color-on-surface-variant);
+}

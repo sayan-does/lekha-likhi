@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from app.schemas.user import User
@@ -9,7 +9,24 @@ import httpx
 from typing import Optional
 
 
-security = HTTPBearer()
+class CustomHTTPBearer(HTTPBearer):
+    """Custom HTTPBearer that returns 401 instead of 403 for missing/invalid credentials."""
+    
+    async def __call__(self, request: Request) -> HTTPAuthorizationCredentials:
+        try:
+            return await super().__call__(request)
+        except HTTPException as e:
+            # Convert 403 to 401 for authentication errors
+            if e.status_code == status.HTTP_403_FORBIDDEN:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authenticated"
+                )
+            raise
+
+
+security = CustomHTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 # Cache for JWKS to avoid repeated requests
 _jwks_cache: Optional[dict] = None
@@ -33,6 +50,60 @@ async def get_jwks() -> dict:
         return _jwks_cache
 
 
+def _user_from_jwt_payload(payload: dict) -> User:
+    user_id = payload.get("sub")
+    email = payload.get("email")
+    user_metadata = payload.get("user_metadata", {})
+
+    if not user_id or not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+
+    display_name = (
+        user_metadata.get("full_name")
+        or user_metadata.get("name")
+        or payload.get("name")
+        or email.split("@")[0]
+    )
+    avatar_url = (
+        user_metadata.get("avatar_url")
+        or user_metadata.get("picture")
+        or payload.get("picture")
+    )
+
+    return User(
+        id=UUID(user_id),
+        email=email,
+        display_name=display_name,
+        avatar_url=avatar_url,
+    )
+
+
+def _user_from_token(token: str) -> User:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.supabase_jwt_secret,
+            algorithms=["HS256"],
+            options={"verify_aud": False},
+        )
+        return _user_from_jwt_payload(payload)
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> User:
@@ -43,48 +114,19 @@ async def get_current_user(
     Raises:
         HTTPException: 401 if token is invalid or missing
     """
-    token = credentials.credentials
-    
+    return _user_from_token(credentials.credentials)
+
+
+async def get_optional_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
+) -> User | None:
+    """Return the authenticated user when a valid token is present."""
+    if credentials is None:
+        return None
     try:
-        # Verify JWT token using the Supabase JWT secret
-        payload = jwt.decode(
-            token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
-            options={"verify_aud": False}  # Supabase tokens don't always have aud
-        )
-        
-        # Extract user information from token
-        user_id = payload.get("sub")
-        email = payload.get("email")
-        user_metadata = payload.get("user_metadata", {})
-        
-        if not user_id or not email:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated"
-            )
-        
-        # Create User model from token data
-        user = User(
-            id=UUID(user_id),
-            email=email,
-            display_name=user_metadata.get("full_name") or user_metadata.get("name") or email.split("@")[0],
-            avatar_url=user_metadata.get("avatar_url") or user_metadata.get("picture")
-        )
-        
-        return user
-        
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
+        return _user_from_token(credentials.credentials)
+    except HTTPException:
+        return None
 
 
 async def upsert_user(user: User) -> None:

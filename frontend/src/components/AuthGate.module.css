@@ -1,5 +1,9 @@
 .shell {
-  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.shellContent {
   align-items: center;
   justify-content: center;
 }
@@ -34,8 +38,14 @@
 }
 
 .title {
-  color: var(--color-ink);
-  max-width: 100%;
+  width: min(100%, 240px);
+  margin: 0;
+}
+
+.logo {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .tagline {

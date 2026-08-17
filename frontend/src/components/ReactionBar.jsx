@@ -8,13 +8,15 @@ export default function ReactionBar({
   groups = [],
   selected = null,
   onSelect,
+  disabled = false,
+  embedded = false,
 }) {
   const namedGroups = groups.filter((group) => group.names?.length > 0);
 
   return (
-    <div className={styles.anchor}>
+    <div className={embedded ? styles.embedded : styles.anchor}>
       <div className={styles.scrap}>
-        <div className={styles.strip}>
+        <div className={`${styles.strip}${disabled ? ` ${styles.disabled}` : ''}`}>
           <div className={styles.emojiRow}>
             {emojis.map((emoji) => {
               const isSelected = selected === emoji;
@@ -26,6 +28,7 @@ export default function ReactionBar({
                   aria-pressed={isSelected}
                   aria-label={emoji}
                   onClick={() => onSelect?.(emoji)}
+                  disabled={disabled}
                 >
                   <span className={styles.emoji} aria-hidden="true">
                     {emoji}
