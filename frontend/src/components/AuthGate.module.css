@@ -1,0 +1,76 @@
+.authGate {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: var(--spacing-page-margin);
+  background-color: var(--color-inverse-surface);
+}
+
+.loginCard {
+  background-color: var(--color-surface);
+  width: 85%;
+  max-width: 400px;
+  min-height: 300px;
+  padding: var(--spacing-page-margin);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+  /* Torn top and bottom only */
+  clip-path: polygon(1% 3%, 99% 1%, 100% 98%, 0% 99%);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+
+.content {
+  padding-top: 32px;
+}
+
+.bottomSection {
+  padding-bottom: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.loginButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  background-color: transparent;
+  
+  /* Wobbly hand-cut radius oval */
+  border-top-left-radius: 255px 15px;
+  border-top-right-radius: 15px 225px;
+  border-bottom-right-radius: 225px 15px;
+  border-bottom-left-radius: 15px 255px;
+  
+  box-shadow: 2px 2px 0px rgba(107, 93, 62, 0.3); /* Subtle sepia bleed */
+  transition: transform 0.1s;
+}
+
+.loginButton:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px rgba(107, 93, 62, 0.3);
+}
+
+.gMark {
+  font-family: serif;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.spinner {
+  font-weight: bold;
+  letter-spacing: 2px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}

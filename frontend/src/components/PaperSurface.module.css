@@ -1,0 +1,56 @@
+.paperWrapper {
+  padding: var(--spacing-page-margin);
+  width: 100%;
+  max-width: 800px; /* Mobile first, but bounds on tablet/desktop */
+  margin: 0 auto;
+  position: relative;
+  /* Jitter handled via inline styles */
+}
+
+.svgFilter {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.paperSurface {
+  background-color: var(--color-surface);
+  /* Vignette gradient & subtle grain */
+  background-image: 
+    radial-gradient(ellipse at center, transparent 60%, var(--color-surface-container-high) 100%),
+    url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.05"/%3E%3C/svg%3E');
+  
+  box-shadow: var(--shadow-soft);
+  
+  /* Minimum height for a realistic paper feel */
+  min-height: calc(100vh - (var(--spacing-page-margin) * 2));
+  position: relative;
+}
+
+.paperRuledLines {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  
+  /* Repeating linear gradient for ruled lines */
+  /* Spaced at exactly 32px (var(--line-height-unit)) apart */
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    var(--color-secondary) 31px,
+    var(--color-secondary) 32px
+  );
+  
+  /* Padding top to start text on a line. 
+     Because repeating-linear-gradient starts at 0, the first line is at 31px.
+     Adding padding-top of 32px means first line of text baseline will align nicely if font setup is perfect.
+     We use 32px padding-top. */
+  padding-top: 32px; 
+}
+
+.paperContent {
+  /* Text container */
+  padding: 0 var(--spacing-gutter);
+  padding-bottom: 32px;
+}

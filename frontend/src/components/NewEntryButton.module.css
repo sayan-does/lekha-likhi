@@ -1,0 +1,31 @@
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* Ink stamp circle */
+  color: var(--color-primary);
+  background-color: transparent;
+  border: 1.5px solid var(--color-primary);
+  
+  /* Wobbly non-perfect circle */
+  border-radius: 48% 52% 47% 53% / 51% 49% 53% 47%;
+  box-shadow: 2px 2px 0px rgba(107, 93, 62, 0.3); /* Sepia bleed */
+  
+  transition: transform 0.1s;
+  z-index: 100;
+}
+
+.fab:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px rgba(107, 93, 62, 0.3);
+}
+
+.icon {
+  /* Sketched + */
+}
