@@ -1,65 +1,136 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import JournalPage from './JournalPage';
 import styles from './PageStack.module.css';
 
-export default function PageStack({ entries, activeIndex, onIndexChange }) {
+const DATE_FORMAT = { month: 'long', day: 'numeric' };
+
+function formatEntryDate(iso) {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Intl.DateTimeFormat(undefined, DATE_FORMAT).format(
+    new Date(year, month - 1, day),
+  );
+}
+
+const SWIPE_THRESHOLD = 50;
+const DRAG_LOCK = 8;
+
+export default function PageStack({
+  entries,
+  activeIndex,
+  onIndexChange,
+  onEntryChange,
+}) {
   const containerRef = useRef(null);
-  
-  // Basic touch tracking for future swipe implementation
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const pointerRef = useRef(null);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Minimum swipe distance (in px)
-  const minSwipeDistance = 50;
+  function resetDrag() {
+    pointerRef.current = null;
+    setIsDragging(false);
+    setDragX(0);
+  }
 
-  const onTouchStart = (e) => {
-    setTouchEnd(null); // Reset
-    setTouchStart(e.targetTouches[0].clientX);
-  };
+  function onPointerDown(event) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (event.target.closest('button')) return;
 
-  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+    pointerRef.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      locked: false,
+      fromField: Boolean(event.target.closest('textarea, input')),
+    };
+  }
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+  function onPointerMove(event) {
+    const pointer = pointerRef.current;
+    if (!pointer || event.pointerId !== pointer.id) return;
 
-    if (isLeftSwipe && activeIndex < entries.length - 1) {
-      onIndexChange(activeIndex + 1); // Turn to next page (older entry)
+    const dx = event.clientX - pointer.x;
+    const dy = event.clientY - pointer.y;
+
+    if (!pointer.locked) {
+      const lock = pointer.fromField ? 36 : DRAG_LOCK;
+      if (Math.abs(dx) < lock && Math.abs(dy) < lock) return;
+      if (Math.abs(dx) <= Math.abs(dy)) {
+        pointerRef.current = null;
+        return;
+      }
+      pointer.locked = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setIsDragging(true);
     }
-    if (isRightSwipe && activeIndex > 0) {
-      onIndexChange(activeIndex - 1); // Turn to previous page (newer entry)
+
+    setDragX(dx);
+  }
+
+  function onPointerUp(event) {
+    const pointer = pointerRef.current;
+    if (!pointer || event.pointerId !== pointer.id) {
+      resetDrag();
+      return;
     }
-  };
+
+    const dx = event.clientX - pointer.x;
+    const locked = pointer.locked;
+    resetDrag();
+
+    if (!locked) return;
+
+    if (dx < -SWIPE_THRESHOLD && activeIndex < entries.length - 1) {
+      onIndexChange(activeIndex + 1);
+      return;
+    }
+
+    if (dx > SWIPE_THRESHOLD && activeIndex > 0) {
+      onIndexChange(activeIndex - 1);
+    }
+  }
+
+  const width = containerRef.current?.clientWidth || 1;
+  const progress = Math.max(-1, Math.min(1, dragX / (width * 0.42)));
 
   return (
-    <div 
-      className={styles.perspectiveContainer}
+    <div
+      className={`${styles.perspectiveContainer}${isDragging ? ` ${styles.dragging}` : ''}`}
       ref={containerRef}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={resetDrag}
     >
       {entries.map((entry, index) => {
-        // Windowed rendering: only render active and adjacent pages
         if (Math.abs(index - activeIndex) > 1) return null;
 
         let pageState = 'active';
-        if (index < activeIndex) pageState = 'past'; // Turned over (left)
-        if (index > activeIndex) pageState = 'future'; // Underneath (right)
+        if (index < activeIndex) pageState = 'past';
+        if (index > activeIndex) pageState = 'future';
+
+        const inlineStyle = { zIndex: entries.length - index };
+
+        if (isDragging) {
+          if (index === activeIndex && progress < 0) {
+            inlineStyle.transform = `rotateY(${progress * 100}deg)`;
+          } else if (index === activeIndex - 1 && progress > 0) {
+            inlineStyle.transform = `rotateY(${-100 + progress * 100}deg)`;
+            inlineStyle.opacity = String(0.35 + progress * 0.65);
+          }
+        }
 
         return (
-          <div 
-            key={entry.id || index}
+          <div
+            key={entry.id}
             className={`${styles.pageWrapper} ${styles[pageState]}`}
-            style={{ zIndex: entries.length - index }}
+            style={inlineStyle}
           >
-            <JournalPage 
-              initialEntry={entry.content} 
-              dateLabel={entry.date}
-              isEditMode={index === 0} // Only latest page is editable for now
-              pageSeed={entry.id || index}
+            <JournalPage
+              body={entry.content}
+              dateLabel={formatEntryDate(entry.date)}
+              pageSeed={entry.id}
+              isEditMode={index === activeIndex}
+              onChange={(content) => onEntryChange(index, content)}
             />
           </div>
         );

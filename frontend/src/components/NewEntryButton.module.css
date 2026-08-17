@@ -1,31 +1,32 @@
 .fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
+  position: absolute;
+  right: var(--page-margin);
+  bottom: var(--page-margin);
   width: 56px;
   height: 56px;
   display: flex;
   justify-content: center;
   align-items: center;
-  
-  /* Ink stamp circle */
+  z-index: 20;
+
   color: var(--color-primary);
   background-color: transparent;
   border: 1.5px solid var(--color-primary);
-  
-  /* Wobbly non-perfect circle */
   border-radius: 48% 52% 47% 53% / 51% 49% 53% 47%;
-  box-shadow: 2px 2px 0px rgba(107, 93, 62, 0.3); /* Sepia bleed */
-  
-  transition: transform 0.1s;
-  z-index: 100;
+  box-shadow:
+    2px 2px 0 color-mix(in srgb, var(--color-secondary) 30%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 8%, transparent);
+
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
 }
 
 .fab:active {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px rgba(107, 93, 62, 0.3);
+  box-shadow:
+    1px 1px 0 color-mix(in srgb, var(--color-secondary) 30%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 .icon {
-  /* Sketched + */
+  display: block;
 }
