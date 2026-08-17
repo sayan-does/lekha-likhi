@@ -19,6 +19,7 @@ export default function PageStack({
   activeIndex,
   onIndexChange,
   onEntryChange,
+  autoFocusId,
 }) {
   const containerRef = useRef(null);
   const pointerRef = useRef(null);
@@ -47,13 +48,13 @@ export default function PageStack({
   function onPointerMove(event) {
     const pointer = pointerRef.current;
     if (!pointer || event.pointerId !== pointer.id) return;
+    if (pointer.fromField) return;
 
     const dx = event.clientX - pointer.x;
     const dy = event.clientY - pointer.y;
 
     if (!pointer.locked) {
-      const lock = pointer.fromField ? 36 : DRAG_LOCK;
-      if (Math.abs(dx) < lock && Math.abs(dy) < lock) return;
+      if (Math.abs(dx) < DRAG_LOCK && Math.abs(dy) < DRAG_LOCK) return;
       if (Math.abs(dx) <= Math.abs(dy)) {
         pointerRef.current = null;
         return;
@@ -130,6 +131,7 @@ export default function PageStack({
               dateLabel={formatEntryDate(entry.date)}
               pageSeed={entry.id}
               isEditMode={index === activeIndex}
+              autoFocus={entry.id === autoFocusId}
               onChange={(content) => onEntryChange(index, content)}
             />
           </div>

@@ -27,6 +27,16 @@
     0 0 0 1px color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
+.prominent {
+  left: 50%;
+  right: auto;
+  bottom: calc(var(--rule-unit) * 3);
+  width: 96px;
+  height: 96px;
+  margin-left: -48px;
+  border-width: 2px;
+}
+
 .icon {
   display: block;
 }

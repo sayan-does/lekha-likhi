@@ -1,19 +1,21 @@
 import React from 'react';
 import styles from './NewEntryButton.module.css';
 
-export default function NewEntryButton({ onClick, isHidden }) {
+export default function NewEntryButton({ onClick, isHidden, prominent = false }) {
   if (isHidden) return null;
+
+  const iconSize = prominent ? 40 : 24;
 
   return (
     <button
       type="button"
-      className={styles.fab}
+      className={`${styles.fab}${prominent ? ` ${styles.prominent}` : ''}`}
       onClick={onClick}
       aria-label="New entry"
     >
       <svg
-        width="24"
-        height="24"
+        width={iconSize}
+        height={iconSize}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

@@ -6,6 +6,7 @@ export default function JournalPage({
   dateLabel,
   body = '',
   isEditMode = false,
+  autoFocus = false,
   pageSeed,
   onChange,
   emptyPrompt,
@@ -29,6 +30,7 @@ export default function JournalPage({
             onChange={(event) => onChange?.(event.target.value)}
             aria-label={dateLabel || 'Journal entry'}
             spellCheck={false}
+            autoFocus={autoFocus}
           />
         ) : (
           <div className={`body-lg ${styles.body}`}>

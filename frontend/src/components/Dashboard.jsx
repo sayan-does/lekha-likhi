@@ -20,17 +20,26 @@ function formatToday() {
 export default function Dashboard() {
   const [entries, setEntries] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [autoFocusId, setAutoFocusId] = useState(null);
 
   const today = todayIso();
   const hasToday = entries.some((entry) => entry.date === today);
   const isEmpty = entries.length === 0;
 
   function handleNewEntry() {
+    if (hasToday) return;
+    const id = crypto.randomUUID();
     setEntries((prev) => {
       if (prev.some((entry) => entry.date === today)) return prev;
-      return [{ id: crypto.randomUUID(), date: today, content: '' }, ...prev];
+      return [{ id, date: today, content: '' }, ...prev];
     });
     setActiveIndex(0);
+    setAutoFocusId(id);
+  }
+
+  function handleIndexChange(index) {
+    setAutoFocusId(null);
+    setActiveIndex(index);
   }
 
   function handleEntryChange(index, content) {
@@ -57,12 +66,17 @@ export default function Dashboard() {
             <PageStack
               entries={entries}
               activeIndex={activeIndex}
-              onIndexChange={setActiveIndex}
+              onIndexChange={handleIndexChange}
               onEntryChange={handleEntryChange}
+              autoFocusId={autoFocusId}
             />
           </div>
         )}
-        <NewEntryButton onClick={handleNewEntry} isHidden={hasToday} />
+        <NewEntryButton
+          onClick={handleNewEntry}
+          isHidden={hasToday}
+          prominent={isEmpty}
+        />
       </div>
     </div>
   );
