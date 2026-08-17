@@ -13,7 +13,7 @@
 .scrap {
   pointer-events: auto;
   width: 100%;
-  max-width: 420px;
+  max-width: 390px;
   filter: drop-shadow(0 -8px 18px color-mix(in srgb, var(--color-secondary) 40%, transparent));
 }
 
