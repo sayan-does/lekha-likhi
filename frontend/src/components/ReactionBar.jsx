@@ -1,44 +1,49 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './ReactionBar.module.css';
 
-export default function ReactionBar() {
-  const allowedEmojis = ['❤️', '🔥', '🤔', '😂', '😢'];
-  const [activeReaction, setActiveReaction] = useState(null);
+const DEFAULT_EMOJIS = ['❤️', '😢', '👏', '😂', '😮'];
 
-  // Mock reactors
-  const mockReactors = {
-    '❤️': ['Sayan', 'Priya'],
-    '😂': ['Aman']
-  };
+export default function ReactionBar({
+  emojis = DEFAULT_EMOJIS,
+  groups = [],
+  selected = null,
+  onSelect,
+}) {
+  const namedGroups = groups.filter((group) => group.names?.length > 0);
 
   return (
-    <div className={styles.reactionBarContainer}>
-      <div className={styles.reactionBar}>
-        <div className={styles.emojiRow}>
-          {allowedEmojis.map(emoji => (
-            <button 
-              key={emoji}
-              className={`${styles.reactionButton} ${activeReaction === emoji ? styles.active : ''}`}
-              onClick={() => setActiveReaction(emoji === activeReaction ? null : emoji)}
-            >
-              <span className={styles.emoji}>{emoji}</span>
-            </button>
-          ))}
-        </div>
-        
-        <div className={styles.reactorNames}>
-          {allowedEmojis.map(emoji => {
-            let names = mockReactors[emoji] || [];
-            if (activeReaction === emoji && !names.includes('You')) {
-              names = [...names, 'You'];
-            }
-            if (names.length === 0) return null;
-            return (
-              <span key={emoji} className={`label-sm ${styles.nameGroup}`}>
-                {emoji} {names.join(', ')}
-              </span>
-            );
-          })}
+    <div className={styles.anchor}>
+      <div className={styles.scrap}>
+        <div className={styles.strip}>
+          <div className={styles.emojiRow}>
+            {emojis.map((emoji) => {
+              const isSelected = selected === emoji;
+              return (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={`${styles.tap} ${isSelected ? styles.selected : ''}`}
+                  aria-pressed={isSelected}
+                  aria-label={emoji}
+                  onClick={() => onSelect?.(emoji)}
+                >
+                  <span className={styles.emoji} aria-hidden="true">
+                    {emoji}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {namedGroups.length > 0 ? (
+            <p className={`label-sm ${styles.names}`}>
+              {namedGroups.map((group, index) => (
+                <span key={group.emoji} className={styles.nameGroup}>
+                  {index > 0 ? ' ' : ''}
+                  {group.emoji} {group.names.join(', ')}
+                </span>
+              ))}
+            </p>
+          ) : null}
         </div>
       </div>
     </div>

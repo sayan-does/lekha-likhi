@@ -1,0 +1,17 @@
+.revoked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-margin);
+}
+
+.revokedMessage {
+  color: var(--color-on-surface-variant);
+  text-align: center;
+  max-width: 20rem;
+}
+
+.pageFrame {
+  height: calc(100dvh - 2 * var(--page-margin));
+  padding-bottom: calc(var(--rule-unit) * 3);
+}
