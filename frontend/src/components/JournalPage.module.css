@@ -3,7 +3,6 @@
   flex-direction: column;
   flex: 1;
   min-height: 100%;
-  height: 100%;
   width: 100%;
   padding-left: var(--margin-inset);
 }
@@ -36,9 +35,10 @@
 
 .editor {
   display: block;
+  flex-shrink: 0;
   min-height: var(--rule-unit);
   resize: none;
-  overflow: auto;
+  overflow: visible;
   background: transparent;
   border: none;
   outline: none;
