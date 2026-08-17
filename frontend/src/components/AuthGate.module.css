@@ -18,12 +18,15 @@
   align-items: center;
   justify-content: center;
   gap: var(--rule-unit);
-  min-height: calc(400px - 2 * var(--rule-unit));
+  flex: 1;
+  width: 100%;
+  min-height: 100%;
   text-align: center;
 }
 
 .title {
   color: var(--color-primary);
+  max-width: 100%;
 }
 
 .tagline {

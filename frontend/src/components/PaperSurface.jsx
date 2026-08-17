@@ -10,16 +10,8 @@ function hashSeed(seed) {
   return Math.abs(h);
 }
 
-function sanitizeSeed(seed) {
-  const raw = String(seed);
-  const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(raw) : raw;
-  const cleaned = escaped.replace(/[^a-zA-Z0-9_-]/g, '_') || 'page';
-  return /^[A-Za-z_]/.test(cleaned) ? cleaned : `p_${cleaned}`;
-}
-
 export default function PaperSurface({ children, pageSeed = 'default', className }) {
   const hash = hashSeed(pageSeed);
-  const safeId = sanitizeSeed(pageSeed);
   const jitterX = ((hash % 2) + 1) * (hash % 3 === 0 ? -1 : 1);
   const ruleOffset = hash % 3;
   const grainX = (hash >>> 3) % 24;
@@ -28,7 +20,6 @@ export default function PaperSurface({ children, pageSeed = 'default', className
   return (
     <div
       className={[styles.root, className].filter(Boolean).join(' ')}
-      id={`paper-${safeId}`}
       style={{
         '--jitter-x': `${jitterX}px`,
         '--rule-offset': `${ruleOffset}px`,
