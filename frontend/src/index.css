@@ -133,10 +133,10 @@ body {
 
 /* Mobile-first paper slot — the edge of the book */
 .page-frame {
-  width: calc(100% - 48px);
+  width: calc(100% - 2 * var(--page-margin));
   max-width: 420px;
-  min-height: calc(100dvh - 48px);
-  margin: 24px auto;
+  min-height: calc(100dvh - 2 * var(--page-margin));
+  margin: var(--page-margin) auto;
   position: relative;
 }
 
