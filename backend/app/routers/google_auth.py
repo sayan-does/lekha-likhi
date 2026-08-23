@@ -3,6 +3,7 @@ from urllib.parse import quote, urlparse
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from app.config import settings
+from app.url_cascade import is_local_app_env, is_loopback_or_private_host
 from app.db import get_supabase_client
 from datetime import datetime, timedelta, timezone
 from jose import jwt
@@ -31,6 +32,9 @@ def resolve_frontend_url(origin: str | None) -> str:
         return default
 
     if parsed.hostname in {"localhost", "127.0.0.1"}:
+        return candidate
+
+    if is_local_app_env(settings.app_env) and is_loopback_or_private_host(parsed.hostname):
         return candidate
 
     allowed_hosts = {urlparse(item).netloc for item in settings.frontend_origins()}

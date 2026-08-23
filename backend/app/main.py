@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from app.auth import get_current_user, upsert_user
 from app.config import settings
+from app.url_cascade import LOCAL_DEV_ORIGIN_REGEX, is_local_app_env
 from app.schemas.user import User
 from app.routers import entries, share_links, shared, google_auth, push
 from app.exceptions import (
@@ -44,13 +45,23 @@ def _cors_origins() -> list[str]:
     return settings.frontend_origins()
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=_cors_origins(),
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+def _cors_origin_regex() -> str | None:
+    if is_local_app_env(settings.app_env):
+        return LOCAL_DEV_ORIGIN_REGEX
+    return None
+
+
+_cors_kwargs = {
+    "allow_origins": _cors_origins(),
+    "allow_credentials": False,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+_cors_regex = _cors_origin_regex()
+if _cors_regex:
+    _cors_kwargs["allow_origin_regex"] = _cors_regex
+
+app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
 
 @app.get("/health")

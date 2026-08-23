@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { checkApiHealth } from '../api/config';
+import { backendUnreachableMessage, checkApiHealth } from '../api/config';
 import PaperSurface from './PaperSurface';
 import CoverShell from './CoverShell';
 import Logo from './Logo';
@@ -18,9 +18,7 @@ export default function AuthGate() {
 
     const healthy = await checkApiHealth();
     if (!healthy) {
-      setError(
-        'Cannot reach the backend. Start it with: cd backend && uvicorn app.main:app --port 8000',
-      );
+      setError(backendUnreachableMessage());
       setIsLoading(false);
       return;
     }
