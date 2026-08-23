@@ -8,6 +8,10 @@
   touch-action: pan-y;
 }
 
+.dragging {
+  touch-action: none;
+}
+
 .pageWrapper {
   position: absolute;
   inset: 0;

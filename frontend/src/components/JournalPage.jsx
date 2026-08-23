@@ -2,15 +2,25 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import PaperSurface from './PaperSurface';
 import SharePopover from './SharePopover';
 import {
+  commitEditorNormalization,
+  decodeAnsiDisplay,
   normalizeEditorText,
   toDisplayText,
   usesRajnigandha,
 } from '../utils/bengaliFont';
 import styles from './JournalPage.module.css';
 
-function mapCaretToDisplay(raw, caret, ansiMode) {
+function mapCaretToDisplay(raw, caret, displayText, bengaliInk) {
+  if (!bengaliInk) return raw.slice(0, caret).length;
+  if (raw.startsWith(displayText)) {
+    const decodedBase = decodeAnsiDisplay(displayText);
+    if (caret >= displayText.length) {
+      return decodedBase.length + (caret - displayText.length);
+    }
+    return toDisplayText(decodeAnsiDisplay(raw.slice(0, caret))).length;
+  }
   const prefix = raw.slice(0, caret);
-  return toDisplayText(normalizeEditorText(prefix, { ansiMode })).length;
+  return toDisplayText(normalizeEditorText(prefix, { ansiMode: true })).length;
 }
 
 export default function JournalPage({
@@ -57,10 +67,10 @@ export default function JournalPage({
   } = shareControls ?? {};
 
   function commitEditorChange(raw, caret) {
-    const normalized = normalizeEditorText(raw, { ansiMode: bengaliInk });
+    const normalized = commitEditorNormalization(raw, displayText, bengaliInk);
     pendingCaretRef.current = {
-      start: mapCaretToDisplay(raw, caret, bengaliInk),
-      end: mapCaretToDisplay(raw, caret, bengaliInk),
+      start: mapCaretToDisplay(raw, caret, displayText, bengaliInk),
+      end: mapCaretToDisplay(raw, caret, displayText, bengaliInk),
     };
     onChange?.(normalized);
   }

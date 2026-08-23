@@ -358,9 +358,49 @@ export function usesRajnigandha(stored) {
 
 function decodeAnsiChunks(value) {
   return value.replace(/[^\u0980-\u09FF]+/g, (chunk) => {
+    if (hasLatinLetters(chunk)) return chunk;
     const decoded = ansiToUnicode(chunk);
     return containsUnicodeBengali(decoded) ? decoded : chunk;
   });
+}
+
+/** Decode a Rajnigandha ANSI display string back to Unicode Bengali. */
+export function decodeAnsiDisplay(text) {
+  const value = text ?? '';
+  const decoded = ansiToUnicode(value);
+  return containsUnicodeBengali(decoded) ? decoded : value;
+}
+
+/** Normalize raw textarea input during Bengali ANSI editing sessions. */
+export function commitEditorNormalization(raw, displayText, bengaliInk) {
+  if (!bengaliInk) return normalizeEditorText(raw, { ansiMode: false });
+
+  const decodedDisplay = decodeAnsiDisplay(displayText);
+
+  if (raw.startsWith(displayText)) {
+    return decodedDisplay + raw.slice(displayText.length);
+  }
+
+  if (raw.startsWith(decodedDisplay)) {
+    return raw;
+  }
+
+  const latinTail = raw.match(/^([\s\S]*?)(\s+[A-Za-z][A-Za-z\s.,!?'"-]*)$/);
+  if (latinTail) {
+    const [, prefix, suffix] = latinTail;
+    if (prefix.startsWith(displayText)) {
+      return decodedDisplay + prefix.slice(displayText.length) + suffix;
+    }
+    if (prefix.startsWith(decodedDisplay)) {
+      return prefix + suffix;
+    }
+    const decodedPrefix = decodeAnsiDisplay(prefix);
+    if (containsUnicodeBengali(decodedPrefix)) {
+      return decodedPrefix + suffix;
+    }
+  }
+
+  return normalizeEditorText(raw, { ansiMode: true });
 }
 
 /** Normalize editor value to Unicode for API storage. */

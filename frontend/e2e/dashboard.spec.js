@@ -277,6 +277,105 @@ test.describe('writer flow', () => {
     expect(fontFamily.toLowerCase()).toContain('rajnigandha');
   });
 
+  test('bengali then english preserves latin text', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript((token) => {
+      sessionStorage.setItem('access_token', token);
+    }, MOCK_TOKEN);
+
+    await page.route('**/me', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: '99999999-9999-9999-9999-999999999999',
+          display_name: 'Test Writer',
+          email: 'writer@example.com',
+        }),
+      }),
+    );
+    await page.route('**/entries?limit=50', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: [], total: 0, limit: 50, offset: 0 }),
+      }),
+    );
+    await page.route('**/share-links', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      }),
+    );
+    await page.route(/\/entries\/\d{4}-\d{2}-\d{2}/, async (route) => {
+      if (route.request().method() !== 'PUT') return route.fallback();
+      const date = route.request().url().match(/(\d{4}-\d{2}-\d{2})/)?.[1];
+      const payload = JSON.parse(route.request().postData() || '{}');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: ENTRY_ID,
+          entry_date: date,
+          body: payload.body ?? '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }),
+      });
+    });
+
+    await page.goto('/');
+    await page.getByText('tap to write today').click();
+    const editor = page.locator('textarea');
+    await expect(editor).toBeVisible();
+
+    await editor.evaluate((el) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        'value',
+      );
+      descriptor.set.call(el, 'আমি লিখছি');
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await expect(editor).toHaveAttribute('data-ink', 'bengali');
+
+    const ansiValue = await editor.inputValue();
+    let savedBody = '';
+    await page.route(/\/entries\/\d{4}-\d{2}-\d{2}/, async (route) => {
+      if (route.request().method() !== 'PUT') return route.fallback();
+      const date = route.request().url().match(/(\d{4}-\d{2}-\d{2})/)?.[1];
+      const payload = JSON.parse(route.request().postData() || '{}');
+      savedBody = payload.body ?? '';
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: ENTRY_ID,
+          entry_date: date,
+          body: savedBody,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }),
+      });
+    });
+
+    await editor.evaluate((el, nextValue) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        'value',
+      );
+      descriptor.set.call(el, nextValue);
+      el.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '' }));
+      el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
+    }, `${ansiValue} hello`);
+
+    await expect.poll(() => savedBody, { timeout: 5000 }).toMatch(/[\u0980-\u09FF]/);
+    await expect.poll(() => savedBody, { timeout: 5000 }).toMatch(/hello/);
+    await expect.poll(() => savedBody, { timeout: 5000 }).not.toMatch(/য\s*ব\s*য\s*য/);
+    await expect(editor).toHaveAttribute('data-ink', 'latin');
+  });
+
   test('empty notebook is already the writing page', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript((token) => {

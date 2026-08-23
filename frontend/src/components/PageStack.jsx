@@ -17,6 +17,7 @@ export function findIndexById(entries, id) {
 
 const SWIPE_THRESHOLD = 50;
 const DRAG_LOCK = 8;
+const TOUCH_DRAG_LOCK = 12;
 
 export default function PageStack({
   entries,
@@ -51,28 +52,35 @@ export default function PageStack({
       y: event.clientY,
       locked: false,
       fromField: Boolean(event.target.closest('textarea, input')),
+      fieldEl: event.target.closest('textarea, input'),
     };
   }
 
   function onPointerMove(event) {
     const pointer = pointerRef.current;
     if (!pointer || event.pointerId !== pointer.id) return;
-    if (pointer.fromField) return;
 
     const dx = event.clientX - pointer.x;
     const dy = event.clientY - pointer.y;
+    const isCoarse = event.pointerType === 'touch' || event.pointerType === 'pen';
+    const lockThreshold = isCoarse ? TOUCH_DRAG_LOCK : DRAG_LOCK;
 
     if (!pointer.locked) {
-      if (Math.abs(dx) < DRAG_LOCK && Math.abs(dy) < DRAG_LOCK) return;
-      if (Math.abs(dx) <= Math.abs(dy)) {
+      if (Math.abs(dx) < lockThreshold && Math.abs(dy) < lockThreshold) return;
+      if (Math.abs(dx) <= Math.abs(dy) * 1.2) {
         pointerRef.current = null;
         return;
       }
       pointer.locked = true;
+      event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
+      if (pointer.fromField) {
+        pointer.fieldEl?.blur();
+      }
       setIsDragging(true);
     }
 
+    event.preventDefault();
     setDragX(dx);
   }
 
