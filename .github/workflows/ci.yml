@@ -44,6 +44,9 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: https://ci.example.invalid
+          VITE_API_URL_PROD: https://ci.example.invalid
+          VITE_API_URL_TUNNEL: ""
+          VITE_APP_ENV: ""
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: End-to-end tests

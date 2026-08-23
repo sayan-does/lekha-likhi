@@ -21,7 +21,7 @@ GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 def resolve_frontend_url(origin: str | None) -> str:
     """Pick a safe redirect target for the OAuth callback."""
-    default = settings.frontend_url.rstrip("/")
+    default = settings.resolved_frontend_url
     if not origin:
         return default
 
@@ -33,14 +33,8 @@ def resolve_frontend_url(origin: str | None) -> str:
     if parsed.hostname in {"localhost", "127.0.0.1"}:
         return candidate
 
-    default_parsed = urlparse(default)
-    if (
-        parsed.scheme == default_parsed.scheme
-        and parsed.netloc == default_parsed.netloc
-    ):
-        return candidate
-
-    if candidate == default:
+    allowed_hosts = {urlparse(item).netloc for item in settings.frontend_origins()}
+    if parsed.netloc in allowed_hosts:
         return candidate
 
     return default

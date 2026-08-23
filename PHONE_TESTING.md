@@ -31,6 +31,8 @@ Use this guide when you want to test the installable PWA and writing reminders o
 
 4. **Vite** is already configured in [`frontend/vite.config.js`](frontend/vite.config.js) to allow `.trycloudflare.com` hosts and `--host`.
 
+Do not change `FRONTEND_URL_PROD`, `FRONTEND_URL_LOCAL`, `VITE_API_URL_PROD`, or `VITE_API_URL_LOCAL`. Phone testing only fills the `*_TUNNEL` keys.
+
 ## Each testing session
 
 You need **4 terminals**. Tunnel URLs change every time you restart `cloudflared`.
@@ -54,11 +56,14 @@ Copy the `https://....trycloudflare.com` URL → **backend tunnel URL**.
 
 ### Terminal 3 — frontend
 
-Create or update `frontend/.env.local`:
+In `frontend/.env.local`, keep `VITE_APP_ENV=local` and set only the tunnel API URL:
 
 ```env
-VITE_API_URL=https://YOUR-BACKEND-TUNNEL-URL
+VITE_APP_ENV=local
+VITE_API_URL_TUNNEL=https://YOUR-BACKEND-TUNNEL-URL
 ```
+
+Leave `VITE_API_URL_PROD` and `VITE_API_URL_LOCAL` alone. A filled `VITE_API_URL_TUNNEL` wins.
 
 Start Vite:
 
@@ -77,11 +82,14 @@ Copy the `https://....trycloudflare.com` URL → **frontend tunnel URL**.
 
 ### Update env for OAuth redirects
 
-**`backend/.env`** — set (then restart backend):
+In `backend/.env.local` (not `.env`), set only the tunnel frontend origin, then restart the backend:
 
 ```env
-FRONTEND_URL=https://YOUR-FRONTEND-TUNNEL-URL
+APP_ENV=local
+FRONTEND_URL_TUNNEL=https://YOUR-FRONTEND-TUNNEL-URL
 ```
+
+Leave `FRONTEND_URL_PROD` and `FRONTEND_URL_LOCAL` alone. A filled `FRONTEND_URL_TUNNEL` wins.
 
 **Google Cloud Console** → OAuth client → **Authorized redirect URI**:
 
@@ -89,7 +97,7 @@ FRONTEND_URL=https://YOUR-FRONTEND-TUNNEL-URL
 https://YOUR-BACKEND-TUNNEL-URL/auth/google/callback
 ```
 
-Restart the backend after changing `FRONTEND_URL`.
+Restart the backend after changing `FRONTEND_URL_TUNNEL`.
 
 ## Test on the phone
 
@@ -119,10 +127,10 @@ Restart the backend after changing `FRONTEND_URL`.
 
 Stop the tunnel processes (`Ctrl+C` in each cloudflared terminal, or kill `cloudflared.exe`).
 
-Revert to normal local dev:
+Clear tunnel keys only — do not edit prod or local URLs:
 
-- Delete `frontend/.env.local`, or set `VITE_API_URL=http://localhost:8000`
-- Set `FRONTEND_URL=http://localhost:5173` in `backend/.env`
+- In `frontend/.env.local`, set `VITE_API_URL_TUNNEL=` (keep `VITE_APP_ENV=local`)
+- In `backend/.env.local`, set `FRONTEND_URL_TUNNEL=` (keep `APP_ENV=local`)
 - Restart backend and frontend
 
 ## Troubleshooting
@@ -130,7 +138,7 @@ Revert to normal local dev:
 | Problem | Fix |
 |---|---|
 | `Blocked request… not allowed` | Restart `npm run dev -- --host`; vite allows `.trycloudflare.com` |
-| Login redirects to localhost | `FRONTEND_URL` must match the **frontend** tunnel URL; restart backend |
+| Login redirects to localhost | `FRONTEND_URL_TUNNEL` must match the **frontend** tunnel URL; restart backend |
 | `Push is not configured` | Set `VAPID_*` in `backend/.env` and restart backend |
 | Empty `public_key` from API | Multiple stale backends on port 8000 — stop all Python/uvicorn processes, start one backend |
 | `cloudflared` not recognized | New terminal, or use full path under `C:\Program Files (x86)\cloudflared\` |
@@ -139,3 +147,4 @@ Revert to normal local dev:
 ## Related docs
 
 - Scheduled reminders in production: [`backend/docs/PUSH_CRON.md`](backend/docs/PUSH_CRON.md)
+- URL cascade: [`env-url-cascade.md`](env-url-cascade.md)

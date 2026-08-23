@@ -1,5 +1,24 @@
+const PROD_API_URL = 'https://lekha-likhi-api.onrender.com';
+
+function firstNonemptyUrl(...candidates) {
+  for (const raw of candidates) {
+    const value = typeof raw === 'string' ? raw.trim().replace(/\/$/, '') : '';
+    if (value) return value;
+  }
+  return '';
+}
+
 export function getApiUrl() {
-  return import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const env = import.meta.env;
+  return firstNonemptyUrl(
+    env.VITE_API_URL_TUNNEL,
+    (env.VITE_APP_ENV || '').trim().toLowerCase() === 'local'
+      ? env.VITE_API_URL_LOCAL
+      : '',
+    env.VITE_API_URL_PROD,
+    env.VITE_API_URL,
+    PROD_API_URL,
+  );
 }
 
 export async function checkApiHealth() {
