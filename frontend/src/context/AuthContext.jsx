@@ -11,6 +11,7 @@ const AUTH_ERROR_MESSAGES = {
   google_denied: 'Google sign-in was cancelled. Try again.',
   google_token: 'Google sign-in did not complete. Try again.',
   google_profile: 'Google did not share an email for this account.',
+  db_error: 'Could not save your account. Try again in a moment.',
   unknown: 'Sign-in failed. Try again.',
 };
 

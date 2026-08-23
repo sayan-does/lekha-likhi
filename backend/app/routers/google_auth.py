@@ -186,6 +186,8 @@ async def google_callback(
         user_id = upsert_google_user(email, display_name, avatar_url)
         jwt_token = mint_session_token(user_id, email, display_name, avatar_url)
         return RedirectResponse(f"{frontend_target}/#access_token={jwt_token}")
-    except Exception:
+    except Exception as exc:
         logger.exception("Google OAuth callback failed")
+        if exc.__class__.__name__ == "APIError":
+            return _frontend_error_redirect(frontend_target, "db_error")
         return _frontend_error_redirect(frontend_target, "unknown")

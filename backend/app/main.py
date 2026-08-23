@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.auth import get_current_user, upsert_user
 from app.config import settings
+from app.db import get_supabase_client
 from app.url_cascade import LOCAL_DEV_ORIGIN_REGEX, is_local_app_env
 from app.schemas.user import User
 from app.routers import entries, share_links, shared, google_auth, push
@@ -69,7 +70,14 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 @app.get("/health")
 async def health_check():
     """Health check endpoint to verify the service is running."""
-    return {"status": "healthy", "service": "journal-app-backend"}
+    payload = {"status": "healthy", "service": "journal-app-backend", "database": "unknown"}
+    try:
+        get_supabase_client().table("users").select("id").limit(1).execute()
+        payload["database"] = "ok"
+    except Exception:
+        payload["status"] = "degraded"
+        payload["database"] = "error"
+    return payload
 
 
 @app.get("/me", response_model=User)
