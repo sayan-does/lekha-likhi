@@ -41,12 +41,7 @@ app.include_router(google_auth.router)
 app.include_router(push.router)
 
 def _cors_origins() -> list[str]:
-    origins = {
-        settings.frontend_url.rstrip("/"),
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    }
-    return sorted(origins)
+    return settings.frontend_origins()
 
 
 app.add_middleware(

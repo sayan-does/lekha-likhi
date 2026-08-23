@@ -15,7 +15,10 @@ os.environ.setdefault("UPSTASH_REDIS_URL", "https://test-redis.upstash.io")
 os.environ.setdefault("UPSTASH_REDIS_TOKEN", "test-redis-token")
 os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
 os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test-google-client-secret")
+os.environ.setdefault("APP_ENV", "local")
 os.environ.setdefault("FRONTEND_URL", "http://localhost:5173")
+os.environ.setdefault("FRONTEND_URL_LOCAL", "http://localhost:5173")
+os.environ.setdefault("FRONTEND_URL_PROD", "https://lekha-likhi.vercel.app")
 os.environ.setdefault(
     "VAPID_PUBLIC_KEY",
     "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U",

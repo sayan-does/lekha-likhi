@@ -58,3 +58,8 @@ frontend/e2e/test-results
 frontend/e2e/screenshots
 frontend/node_modules
 supabase/.temp
+.vercel
+.env
+.env.local
+.env*.local
+!.env.example
