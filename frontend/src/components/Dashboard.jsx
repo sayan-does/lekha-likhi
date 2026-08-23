@@ -8,9 +8,7 @@ import {
   listShareLinks,
 } from '../api/shareLinks';
 import { getReactions, groupReactions, postReaction } from '../api/reactions';
-import JournalPage from './JournalPage';
 import PageFan from './PageFan';
-import StartWritingChip from './StartWritingChip';
 import CoverShell from './CoverShell';
 import { findIndexById } from './PageStack';
 import { todayIso } from '../utils/entries';
@@ -24,7 +22,6 @@ import {
 } from '../utils/writingSession';
 import styles from './Dashboard.module.css';
 
-const DATE_FORMAT = { month: 'long', day: 'numeric' };
 const SAVE_DEBOUNCE_MS = 800;
 
 function resolveActiveIndex(entryList, today, searchParams, lastDate) {
@@ -56,8 +53,17 @@ function resolveActiveIndex(entryList, today, searchParams, lastDate) {
   return todayIdx >= 0 ? todayIdx : 0;
 }
 
-function formatToday() {
-  return new Intl.DateTimeFormat(undefined, DATE_FORMAT).format(new Date());
+function ensureTodayEntry(entryList, today, draft) {
+  if (entryList.some((entry) => entry.date === today)) return entryList;
+  return [
+    {
+      id: 'today-draft',
+      date: today,
+      content: draft || '',
+      isLocalDraft: true,
+    },
+    ...entryList,
+  ];
 }
 
 function totalReactionCount(groups) {
@@ -78,9 +84,6 @@ export default function Dashboard() {
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [emptyDraft, setEmptyDraft] = useState(() =>
-    draftBody(sessionRef.current.drafts, todayIso()),
-  );
   const [initialCaret] = useState(() => sessionRef.current.caret);
   const [initialScrollTop] = useState(() => sessionRef.current.scrollTop);
   const saveTimerRef = useRef(null);
@@ -92,7 +95,6 @@ export default function Dashboard() {
   const activeIndexRef = useRef(activeIndex);
 
   const today = todayIso();
-  const hasToday = entries.some((entry) => entry.date === today);
   const activeEntry = entries[activeIndex] ?? null;
   const activeShareToken = activeEntry
     ? shareTokensByEntryId[activeEntry.id] ?? null
@@ -188,13 +190,16 @@ export default function Dashboard() {
 
         const session = loadWritingSession();
         sessionRef.current = session;
-        const merged = applyDraftsToEntries(entryList, session.drafts);
+        const merged = ensureTodayEntry(
+          applyDraftsToEntries(entryList, session.drafts),
+          today,
+          draftBody(session.drafts, today),
+        );
         setEntries(merged);
-        setEmptyDraft(draftBody(session.drafts, today) || '');
         setShareTokensByEntryId(buildShareTokenMap(links));
         setActiveIndex(resolveActiveIndex(merged, today, searchParams, session.activeDate));
       } catch {
-        if (!cancelled) setEntries([]);
+        if (!cancelled) setEntries(ensureTodayEntry([], today, ''));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -212,10 +217,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     const entry = entries[activeIndex];
-    const date = entry?.date ?? (emptyDraft ? today : null);
+    const date = entry?.date ?? today;
     if (!date) return;
     saveWritingSession({ activeDate: date });
-  }, [activeIndex, entries, emptyDraft, today]);
+  }, [activeIndex, entries, today]);
 
   useEffect(() => {
     if (!activeShareToken) {
@@ -269,21 +274,6 @@ export default function Dashboard() {
     };
   }, [flushSave, today]);
 
-  async function handleNewEntry() {
-    if (hasToday) return;
-    try {
-      const saved = await upsertEntry(today, emptyDraft);
-      pendingSaveRef.current = null;
-      clearDraft(today);
-      setEntries((prev) => [saved, ...prev]);
-      setActiveIndex(0);
-      setAutoFocusId(saved.id);
-      setEmptyDraft('');
-    } catch {
-      /* ignore */
-    }
-  }
-
   function handleIndexChange(index) {
     setAutoFocusId(null);
     setActiveIndex(index);
@@ -299,11 +289,6 @@ export default function Dashboard() {
         itemIndex === index ? { ...item, content } : item,
       ),
     );
-  }
-
-  function handleEmptyDraftChange(content) {
-    setEmptyDraft(content);
-    scheduleSave(today, content);
   }
 
   function handleCaretChange(caret) {
@@ -355,7 +340,7 @@ export default function Dashboard() {
     }
   }
 
-  const shareControls = activeEntry?.id
+  const shareControls = activeEntry?.id && !activeEntry.isLocalDraft
     ? {
         isOpen: shareOpen,
         onToggle: toggleShareOpen,
@@ -384,35 +369,12 @@ export default function Dashboard() {
       <div className={styles.layout}>
         {loading ? (
           <p className={`body-md ${styles.loading}`}>opening notebook…</p>
-        ) : entries.length === 0 ? (
-          <div className={styles.emptyFan}>
-            <div className={styles.leading}>
-              <StartWritingChip onClick={handleNewEntry} />
-            </div>
-            <div className={styles.center}>
-              <JournalPage
-                dateLabel={formatToday()}
-                body={emptyDraft}
-                isEditMode
-                autoFocus={false}
-                pageSeed="empty"
-                emptyPrompt="nothing written yet — tap to begin"
-                onChange={handleEmptyDraftChange}
-                initialCaret={activeCaret}
-                initialScrollTop={initialScrollTop}
-                onCaretChange={handleCaretChange}
-                onScrollChange={handleScrollChange}
-              />
-            </div>
-          </div>
         ) : (
           <PageFan
             entries={entries}
             activeIndex={activeIndex}
-            hasToday={hasToday}
             onIndexChange={handleIndexChange}
             onEntryChange={handleEntryChange}
-            onNewEntry={handleNewEntry}
             autoFocusId={autoFocusId}
             shareControls={shareControls}
             initialCaret={activeCaret}

@@ -1,15 +1,12 @@
 import React from 'react';
-import StartWritingChip from './StartWritingChip';
 import PageStack from './PageStack';
 import styles from './PageFan.module.css';
 
 export default function PageFan({
   entries,
   activeIndex,
-  hasToday,
   onIndexChange,
   onEntryChange,
-  onNewEntry,
   autoFocusId,
   shareControls,
   initialCaret,
@@ -19,12 +16,6 @@ export default function PageFan({
 }) {
   return (
     <div className={styles.fan}>
-      {!hasToday ? (
-        <div className={styles.leading}>
-          <StartWritingChip onClick={onNewEntry} />
-        </div>
-      ) : null}
-
       <div className={styles.center}>
         <PageStack
           entries={entries}

@@ -19,23 +19,6 @@
   box-sizing: border-box;
 }
 
-.emptyFan {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  flex: 1;
-  min-height: 0;
-  gap: 8px;
-}
-
-.leading {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  flex-shrink: 0;
-  gap: 6px;
-}
-
 .center {
   flex: 1;
   min-width: 0;

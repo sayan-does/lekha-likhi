@@ -61,7 +61,7 @@ export default function HomePage() {
         <button
           type="button"
           className={styles.startCard}
-          onClick={() => navigate('/write')}
+          onClick={() => navigate('/write?today=1')}
         >
           <span className={`headline-md ${styles.startPrompt}`}>what&apos;s on your mind?</span>
           <span className={`body-md ${styles.startHint}`}>tap to write today</span>

@@ -1,12 +1,16 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import PaperSurface from './PaperSurface';
 import SharePopover from './SharePopover';
-import { normalizeEditorText, toDisplayText } from '../utils/bengaliFont';
+import {
+  normalizeEditorText,
+  toDisplayText,
+  usesRajnigandha,
+} from '../utils/bengaliFont';
 import styles from './JournalPage.module.css';
 
-function mapCaretToDisplay(raw, caret) {
+function mapCaretToDisplay(raw, caret, ansiMode) {
   const prefix = raw.slice(0, caret);
-  return toDisplayText(normalizeEditorText(prefix)).length;
+  return toDisplayText(normalizeEditorText(prefix, { ansiMode })).length;
 }
 
 export default function JournalPage({
@@ -30,8 +34,10 @@ export default function JournalPage({
   const pendingCaretRef = useRef(null);
   const [composingValue, setComposingValue] = useState(null);
   const text = body ?? '';
+  const bengaliInk = usesRajnigandha(text);
   const displayText = toDisplayText(text);
   const editorValue = composingValue !== null ? composingValue : displayText;
+  const inkClass = bengaliInk ? styles.bengaliInk : undefined;
   const hasDate = Boolean(dateLabel);
   const isEmpty = text.length === 0;
   const showPrompt = !isEditMode && isEmpty && Boolean(emptyPrompt);
@@ -51,10 +57,10 @@ export default function JournalPage({
   } = shareControls ?? {};
 
   function commitEditorChange(raw, caret) {
-    const normalized = normalizeEditorText(raw);
+    const normalized = normalizeEditorText(raw, { ansiMode: bengaliInk });
     pendingCaretRef.current = {
-      start: mapCaretToDisplay(raw, caret),
-      end: mapCaretToDisplay(raw, caret),
+      start: mapCaretToDisplay(raw, caret, bengaliInk),
+      end: mapCaretToDisplay(raw, caret, bengaliInk),
     };
     onChange?.(normalized);
   }
@@ -162,7 +168,8 @@ export default function JournalPage({
         {isEditMode ? (
           <textarea
             ref={editorRef}
-            className={styles.editor}
+            className={[styles.editor, inkClass].filter(Boolean).join(' ')}
+            data-ink={bengaliInk ? 'bengali' : 'latin'}
             value={editorValue}
             onChange={handleChange}
             onCompositionStart={handleCompositionStart}
@@ -174,7 +181,10 @@ export default function JournalPage({
             autoFocus={autoFocus}
           />
         ) : (
-          <div className={styles.body}>
+          <div
+            className={[styles.body, inkClass].filter(Boolean).join(' ')}
+            data-ink={bengaliInk ? 'bengali' : 'latin'}
+          >
             {showPrompt ? (
               <span className={styles.prompt}>{emptyPrompt}</span>
             ) : (

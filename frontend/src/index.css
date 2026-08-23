@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Noto+Serif+Bengali:wght@400;500;600;700&display=swap');
 
 @font-face {
   font-family: 'Rajnigandha';
@@ -69,7 +69,9 @@
   /* Typography */
   --font-family: 'Literata', serif;
   --font-handwriting: 'Caveat', cursive;
-  --font-bengali: 'Rajnigandha', var(--font-handwriting), cursive;
+  --font-bengali: 'Noto Serif Bengali', 'Nirmala UI', sans-serif;
+  --font-journal: var(--font-handwriting), var(--font-bengali);
+  --font-rajnigandha: 'Rajnigandha', var(--font-bengali);
   --font-size-display-lg: 32px;
   --font-weight-display-lg: 600;
   --line-height-display-lg: 40px;
