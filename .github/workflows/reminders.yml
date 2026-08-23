@@ -1,0 +1,23 @@
+name: dispatch-reminders
+
+on:
+  schedule:
+    - cron: "30 14 * * *"
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call reminder dispatcher
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$BACKEND_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "BACKEND_URL and CRON_SECRET GitHub secrets are required."
+            exit 1
+          fi
+          curl -fsS -X POST "${BACKEND_URL%/}/push/dispatch-reminders" \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "Content-Type: application/json"

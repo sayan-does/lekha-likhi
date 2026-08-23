@@ -54,5 +54,7 @@ htmlcov/
 
 
 docs/
-frontend/e2e
+frontend/e2e/test-results
+frontend/e2e/screenshots
 frontend/node_modules
+supabase/.temp

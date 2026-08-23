@@ -11,6 +11,7 @@ import {
   pastEntriesOnly,
   todayIso,
 } from '../utils/entries';
+import ReminderToggle from './ReminderToggle';
 import styles from './HomePage.module.css';
 
 const PREVIEW_LIMIT = 3;
@@ -65,6 +66,8 @@ export default function HomePage() {
           <span className={`headline-md ${styles.startPrompt}`}>what&apos;s on your mind?</span>
           <span className={`body-md ${styles.startHint}`}>tap to write today</span>
         </button>
+
+        <ReminderToggle />
 
         {!loading ? (
           <div

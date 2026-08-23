@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     google_client_secret: str
 
     frontend_url: str = "http://localhost:5173"
+
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    vapid_subject: str = "mailto:admin@lekha-likhi.local"
+    cron_secret: str = ""
     
     model_config = SettingsConfigDict(
         env_file=".env",

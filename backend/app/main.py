@@ -2,8 +2,9 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from app.auth import get_current_user, upsert_user
+from app.config import settings
 from app.schemas.user import User
-from app.routers import entries, share_links, shared, google_auth
+from app.routers import entries, share_links, shared, google_auth, push
 from app.exceptions import (
     EntryNotFoundException,
     ShareLinkNotFoundException,
@@ -37,12 +38,21 @@ app.include_router(entries.router)
 app.include_router(share_links.router)
 app.include_router(shared.router)
 app.include_router(google_auth.router)
+app.include_router(push.router)
 
-# CORS middleware configuration for frontend integration
+def _cors_origins() -> list[str]:
+    origins = {
+        settings.frontend_url.rstrip("/"),
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    }
+    return sorted(origins)
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
+    allow_origins=_cors_origins(),
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

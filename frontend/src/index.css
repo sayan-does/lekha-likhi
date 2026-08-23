@@ -2,11 +2,10 @@
 
 @font-face {
   font-family: 'Rajnigandha';
-  src: url('../assets/Rajnigandha/Rajnigandha ANSI.ttf') format('truetype');
+  src: url('./assets/fonts/Rajnigandha/Rajnigandha ANSI.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0980-09FF;
 }
 
 :root {

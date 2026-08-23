@@ -5,6 +5,8 @@
   min-height: 100%;
   width: 100%;
   padding-left: var(--margin-inset);
+  position: relative;
+  z-index: 1;
 }
 
 .dateRow {
@@ -107,6 +109,7 @@
   appearance: none;
   caret-color: var(--color-pen-ink);
   field-sizing: content;
+  font-variant-ligatures: none;
 }
 
 .editor:focus,

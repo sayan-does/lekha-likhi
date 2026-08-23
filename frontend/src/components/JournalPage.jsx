@@ -1,7 +1,13 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import PaperSurface from './PaperSurface';
 import SharePopover from './SharePopover';
+import { normalizeEditorText, toDisplayText } from '../utils/bengaliFont';
 import styles from './JournalPage.module.css';
+
+function mapCaretToDisplay(raw, caret) {
+  const prefix = raw.slice(0, caret);
+  return toDisplayText(normalizeEditorText(prefix)).length;
+}
 
 export default function JournalPage({
   dateLabel,
@@ -20,7 +26,12 @@ export default function JournalPage({
   const shareAnchorRef = useRef(null);
   const editorRef = useRef(null);
   const restoredSeed = useRef(null);
+  const isComposingRef = useRef(false);
+  const pendingCaretRef = useRef(null);
+  const [composingValue, setComposingValue] = useState(null);
   const text = body ?? '';
+  const displayText = toDisplayText(text);
+  const editorValue = composingValue !== null ? composingValue : displayText;
   const hasDate = Boolean(dateLabel);
   const isEmpty = text.length === 0;
   const showPrompt = !isEditMode && isEmpty && Boolean(emptyPrompt);
@@ -39,28 +50,69 @@ export default function JournalPage({
     onReactionSelect,
   } = shareControls ?? {};
 
+  function commitEditorChange(raw, caret) {
+    const normalized = normalizeEditorText(raw);
+    pendingCaretRef.current = {
+      start: mapCaretToDisplay(raw, caret),
+      end: mapCaretToDisplay(raw, caret),
+    };
+    onChange?.(normalized);
+  }
+
   useLayoutEffect(() => {
     if (!isEditMode) return;
     const editor = editorRef.current;
     if (!editor) return;
-    if (restoredSeed.current === pageSeed) return;
-    restoredSeed.current = pageSeed;
 
-    if (initialCaret && Number.isFinite(initialCaret.start)) {
-      const start = Math.max(0, Math.min(initialCaret.start, editor.value.length));
-      const end = Math.max(
-        start,
-        Math.min(initialCaret.end ?? initialCaret.start, editor.value.length),
-      );
-      editor.setSelectionRange(start, end);
+    if (restoredSeed.current !== pageSeed) {
+      restoredSeed.current = pageSeed;
+      if (initialCaret && Number.isFinite(initialCaret.start)) {
+        const start = Math.max(0, Math.min(initialCaret.start, editor.value.length));
+        const end = Math.max(
+          start,
+          Math.min(initialCaret.end ?? initialCaret.start, editor.value.length),
+        );
+        editor.setSelectionRange(start, end);
+        return;
+      }
     }
-  }, [isEditMode, pageSeed, initialCaret, text]);
+
+    if (pendingCaretRef.current) {
+      const { start, end } = pendingCaretRef.current;
+      pendingCaretRef.current = null;
+      const len = editor.value.length;
+      editor.setSelectionRange(Math.min(start, len), Math.min(end ?? start, len));
+    }
+  }, [isEditMode, pageSeed, initialCaret, displayText]);
 
   function reportCaret(event) {
     onCaretChange?.({
       start: event.target.selectionStart,
       end: event.target.selectionEnd,
     });
+  }
+
+  function handleCompositionStart() {
+    isComposingRef.current = true;
+    setComposingValue(editorRef.current?.value ?? displayText);
+  }
+
+  function handleCompositionUpdate(event) {
+    setComposingValue(event.target.value);
+  }
+
+  function handleCompositionEnd(event) {
+    isComposingRef.current = false;
+    setComposingValue(null);
+    commitEditorChange(event.target.value, event.target.selectionStart);
+  }
+
+  function handleChange(event) {
+    if (isComposingRef.current) {
+      setComposingValue(event.target.value);
+      return;
+    }
+    commitEditorChange(event.target.value, event.target.selectionStart);
   }
 
   return (
@@ -110,20 +162,23 @@ export default function JournalPage({
         {isEditMode ? (
           <textarea
             ref={editorRef}
-            className={`body-lg ${styles.editor}`}
-            value={text}
-            onChange={(event) => onChange?.(event.target.value)}
+            className={styles.editor}
+            value={editorValue}
+            onChange={handleChange}
+            onCompositionStart={handleCompositionStart}
+            onCompositionUpdate={handleCompositionUpdate}
+            onCompositionEnd={handleCompositionEnd}
             onSelect={reportCaret}
             aria-label={dateLabel || 'Journal entry'}
             spellCheck={false}
             autoFocus={autoFocus}
           />
         ) : (
-          <div className={`body-lg ${styles.body}`}>
+          <div className={styles.body}>
             {showPrompt ? (
               <span className={styles.prompt}>{emptyPrompt}</span>
             ) : (
-              text
+              displayText
             )}
           </div>
         )}

@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--spacing-gutter) / 2);
+  width: 100%;
+  margin: var(--rule-unit) 0;
+}
+
+.toggle {
+  padding: 8px 18px;
+  color: color-mix(in srgb, var(--color-inverse-on-surface) 82%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-inverse-on-surface) 38%, transparent);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+}
+
+.toggleOn {
+  color: var(--color-stamp-red);
+  border-color: color-mix(in srgb, var(--color-stamp-red) 55%, transparent);
+}
+
+.toggle:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+.toggle:disabled {
+  opacity: 0.65;
+}
+
+.hint {
+  margin: 0;
+  text-align: center;
+  color: color-mix(in srgb, var(--color-inverse-on-surface) 68%, transparent);
+}
+
+.error {
+  margin: 0;
+  text-align: center;
+  color: var(--color-stamp-red);
+}
