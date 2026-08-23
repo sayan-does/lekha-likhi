@@ -344,18 +344,39 @@ export function containsUnicodeBengali(text) {
   return UNICODE_BENGALI_RX.test(text ?? '');
 }
 
-/** Normalize editor value to Unicode for API storage. */
-export function normalizeEditorText(raw) {
-  const value = raw ?? '';
-  if (containsUnicodeBengali(value)) return value;
-  const decoded = ansiToUnicode(value);
-  if (containsUnicodeBengali(decoded)) return decoded;
-  return value;
+const LATIN_LETTER_RX = /[A-Za-z]/;
+
+export function hasLatinLetters(text) {
+  return LATIN_LETTER_RX.test(text ?? '');
 }
 
-/** Text shown in the journal with Rajnigandha applied. */
+/** Rajnigandha is only for Bengali-only ink — never English or mixed Latin. */
+export function usesRajnigandha(stored) {
+  const value = stored ?? '';
+  return containsUnicodeBengali(value) && !hasLatinLetters(value);
+}
+
+function decodeAnsiChunks(value) {
+  return value.replace(/[^\u0980-\u09FF]+/g, (chunk) => {
+    const decoded = ansiToUnicode(chunk);
+    return containsUnicodeBengali(decoded) ? decoded : chunk;
+  });
+}
+
+/** Normalize editor value to Unicode for API storage. */
+export function normalizeEditorText(raw, { ansiMode = false } = {}) {
+  const value = raw ?? '';
+  if (containsUnicodeBengali(value)) {
+    return ansiMode ? decodeAnsiChunks(value) : value;
+  }
+  if (!ansiMode) return value;
+  const decoded = ansiToUnicode(value);
+  return containsUnicodeBengali(decoded) ? decoded : value;
+}
+
+/** ANSI keystrokes only when the stored entry is Bengali-only. */
 export function toDisplayText(stored) {
   const value = stored ?? '';
-  if (!containsUnicodeBengali(value)) return value;
+  if (!usesRajnigandha(value)) return value;
   return unicodeToAnsi(value);
 }
