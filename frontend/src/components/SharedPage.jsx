@@ -58,16 +58,16 @@ export default function SharedPage() {
   const loadEntry = useCallback(async () => {
     if (!token || isPreview) return;
 
-    setStatus('loading');
+    setStatus((current) => (current === 'ok' ? current : 'loading'));
     try {
       const data = await getSharedEntry(token);
       applyEntry(data);
       setStatus('ok');
     } catch (error) {
-      setEntry(null);
-      setReactionGroups([]);
-      setSelectedEmoji(null);
-      setStatus(error.status === 404 ? 'revoked' : 'error');
+      setStatus((current) => {
+        if (current === 'ok') return current;
+        return error.status === 404 ? 'revoked' : 'error';
+      });
     }
   }, [token, isPreview, applyEntry]);
 

@@ -1,9 +1,34 @@
 """Rate limiting service using Upstash Redis."""
 
+import json
 import httpx
 from app.config import settings
-from typing import Tuple
+from typing import Any, Tuple
 from uuid import UUID
+
+
+def parse_cached_share_link(result: Any) -> dict | None:
+    """Normalize a Redis GET result into share-link cache data.
+
+    Older writers stored a JSON string via httpx ``json=``, so Redis may
+    contain one extra encoding layer. Unwrap at most twice, then require
+    a dict with ``entry_id``.
+    """
+    if result is None:
+        return None
+
+    data = result
+    for _ in range(2):
+        if not isinstance(data, str):
+            break
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(data, dict) or not data.get("entry_id"):
+        return None
+    return data
 
 
 class RateLimitExceeded(Exception):
@@ -99,21 +124,18 @@ class RateLimitService:
             Dict with entry_id and is_active, or None if not cached
         """
         key = f"share_link:{token}"
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/get/{key}",
-                headers=self.headers
-            )
-            response.raise_for_status()
-            result = response.json().get("result")
-            
-            if result is None:
-                return None
-            
-            # Parse JSON string from Redis
-            import json
-            return json.loads(result)
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self.base_url,
+                    headers=self.headers,
+                    json=["GET", key],
+                )
+                response.raise_for_status()
+                return parse_cached_share_link(response.json().get("result"))
+        except Exception:
+            return None
     
     async def set_cached_share_link(
         self,
@@ -132,21 +154,22 @@ class RateLimitService:
             ttl_seconds: Time to live in seconds (default 5 minutes)
         """
         key = f"share_link:{token}"
-        
-        import json
         value = json.dumps({
             "entry_id": entry_id,
             "is_active": is_active
         })
-        
-        async with httpx.AsyncClient() as client:
-            # Set value with expiry
-            response = await client.post(
-                f"{self.base_url}/setex/{key}/{ttl_seconds}",
-                headers=self.headers,
-                json=value
-            )
-            response.raise_for_status()
+
+        try:
+            async with httpx.AsyncClient() as client:
+                # Command-array body avoids double-encoding the JSON value.
+                response = await client.post(
+                    self.base_url,
+                    headers=self.headers,
+                    json=["SETEX", key, ttl_seconds, value],
+                )
+                response.raise_for_status()
+        except Exception:
+            return
     
     async def invalidate_share_link_cache(self, token: str) -> None:
         """

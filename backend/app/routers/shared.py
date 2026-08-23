@@ -13,6 +13,18 @@ from typing import List
 router = APIRouter(prefix="/shared", tags=["shared"])
 
 
+def _cached_active_entry_id(cached_data) -> str | None:
+    """Return entry_id from a valid active cache hit, or None to use the DB."""
+    if not isinstance(cached_data, dict) or not cached_data.get("entry_id"):
+        return None
+    if not cached_data.get("is_active"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This entry is no longer available",
+        )
+    return cached_data["entry_id"]
+
+
 @router.get("/{token}", response_model=SharedEntryResponse)
 async def get_shared_entry(token: str):
     """
@@ -30,16 +42,9 @@ async def get_shared_entry(token: str):
     
     # Try to get from cache first
     cached_data = await rate_limit_service.get_cached_share_link(token)
-    
-    if cached_data:
-        # Check if active
-        if not cached_data.get("is_active"):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This entry is no longer available"
-            )
-        entry_id = cached_data["entry_id"]
-    else:
+    entry_id = _cached_active_entry_id(cached_data)
+
+    if not entry_id:
         # Fall back to database
         share_link_response = supabase.table("share_links").select(
             "entry_id, is_active"
@@ -113,17 +118,10 @@ async def get_shared_entry_reactions(token: str):
     supabase = get_supabase_client()
     rate_limit_service = get_rate_limit_service()
     
-    # Try to get from cache first
     cached_data = await rate_limit_service.get_cached_share_link(token)
-    
-    if cached_data:
-        if not cached_data.get("is_active"):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This entry is no longer available"
-            )
-        entry_id = cached_data["entry_id"]
-    else:
+    entry_id = _cached_active_entry_id(cached_data)
+
+    if not entry_id:
         share_link_response = supabase.table("share_links").select(
             "entry_id, is_active"
         ).eq("token", token).execute()

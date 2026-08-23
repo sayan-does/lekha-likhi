@@ -225,6 +225,55 @@ def test_get_shared_entry_uses_cache(
     mock_rate_limit_service.get_cached_share_link.assert_called_once_with(token)
 
 
+def test_get_shared_entry_falls_back_when_cache_is_poisoned_string(
+    client, mock_supabase, mock_rate_limit_service, mock_user
+):
+    """A double-encoded cache value must not 500; fall back to the database."""
+    token = "poisoned-cache-token"
+    entry_id = str(uuid4())
+
+    mock_rate_limit_service.get_cached_share_link.return_value = (
+        '{"entry_id": "%s", "is_active": true}' % entry_id
+    )
+
+    mock_table = MagicMock()
+    mock_supabase.table.return_value = mock_table
+
+    share_link_query = MagicMock()
+    share_link_query.eq.return_value.execute.return_value.data = [{
+        "entry_id": entry_id,
+        "is_active": True
+    }]
+
+    entry_query = MagicMock()
+    entry_query.eq.return_value.execute.return_value.data = [{
+        "entry_date": "2024-01-15",
+        "body": "Recovered from cache poison",
+        "owner_id": str(uuid4()),
+        "users": {"display_name": "Owner"}
+    }]
+
+    reactions_query = MagicMock()
+    reactions_query.eq.return_value.execute.return_value.data = []
+
+    call_count = [0]
+
+    def mock_table_select(*args, **kwargs):
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return share_link_query
+        if call_count[0] == 2:
+            return entry_query
+        return reactions_query
+
+    mock_table.select.side_effect = mock_table_select
+
+    response = client.get(f"/shared/{token}")
+
+    assert response.status_code == 200
+    assert response.json()["body"] == "Recovered from cache poison"
+
+
 def test_get_shared_entry_populates_cache_on_miss(
     client, mock_supabase, mock_rate_limit_service, mock_user
 ):
