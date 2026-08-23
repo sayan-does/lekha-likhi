@@ -7,28 +7,45 @@ const AuthContext = createContext(null);
 
 const STORAGE_KEY = 'access_token';
 
-function parseHashToken() {
+const AUTH_ERROR_MESSAGES = {
+  google_denied: 'Google sign-in was cancelled. Try again.',
+  google_token: 'Google sign-in did not complete. Try again.',
+  google_profile: 'Google did not share an email for this account.',
+  unknown: 'Sign-in failed. Try again.',
+};
+
+function parseHashParams() {
   const hash = window.location.hash;
-  if (!hash.includes('access_token=')) return null;
-  const params = new URLSearchParams(hash.slice(1));
-  return params.get('access_token');
+  if (!hash || hash.length < 2) return new URLSearchParams();
+  return new URLSearchParams(hash.slice(1));
+}
+
+function messageForAuthError(code) {
+  if (!code) return null;
+  return AUTH_ERROR_MESSAGES[code] || AUTH_ERROR_MESSAGES.unknown;
 }
 
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isReady, setIsReady] = useState(false);
+  const [loginError, setLoginError] = useState(null);
 
   useEffect(() => {
-    const fromHash = parseHashToken();
+    const params = parseHashParams();
+    const fromHash = params.get('access_token');
+    const hashError = params.get('auth_error');
+    if (fromHash || hashError) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     if (fromHash) {
       sessionStorage.setItem(STORAGE_KEY, fromHash);
-      window.history.replaceState(null, '', window.location.pathname);
       setAccessToken(fromHash);
     } else {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) setAccessToken(stored);
     }
+    if (hashError) setLoginError(messageForAuthError(hashError));
     setIsReady(true);
   }, []);
 
@@ -60,6 +77,7 @@ export function AuthProvider({ children }) {
   }, [accessToken]);
 
   async function login() {
+    setLoginError(null);
     const apiUrl = getApiUrl();
     const returnTarget = `${window.location.origin}${window.location.pathname}${window.location.search}`;
     const origin = encodeURIComponent(returnTarget);
@@ -75,7 +93,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ accessToken, user, isReady, isAuthenticated: Boolean(accessToken), login, logout }}
+      value={{ accessToken, user, isReady, isAuthenticated: Boolean(accessToken), login, loginError, logout }}
     >
       {children}
     </AuthContext.Provider>

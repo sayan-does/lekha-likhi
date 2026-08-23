@@ -8,9 +8,10 @@ import Logo from './Logo';
 import styles from './AuthGate.module.css';
 
 export default function AuthGate() {
-  const { isAuthenticated, isReady, login } = useAuth();
+  const { isAuthenticated, isReady, login, loginError } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const visibleError = error || loginError;
 
   const handleLogin = async () => {
     setError(null);
@@ -75,8 +76,8 @@ export default function AuthGate() {
                     Sign in with Google
                   </span>
                 </button>
-                {error ? (
-                  <p className={`body-md ${styles.error}`}>{error}</p>
+                {visibleError ? (
+                  <p className={`body-md ${styles.error}`}>{visibleError}</p>
                 ) : null}
               </div>
             </div>
