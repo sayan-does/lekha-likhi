@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { backendUnreachableMessage, checkApiHealth } from '../api/config';
+import { backendUnreachableMessage, checkApiHealth, getApiUrl, isLocalApiUrl } from '../api/config';
 import PaperSurface from './PaperSurface';
 import CoverShell from './CoverShell';
 import Logo from './Logo';
@@ -16,11 +16,14 @@ export default function AuthGate() {
     setError(null);
     setIsLoading(true);
 
-    const healthy = await checkApiHealth();
-    if (!healthy) {
-      setError(backendUnreachableMessage());
-      setIsLoading(false);
-      return;
+    const apiUrl = getApiUrl();
+    if (isLocalApiUrl(apiUrl)) {
+      const healthy = await checkApiHealth();
+      if (!healthy) {
+        setError(backendUnreachableMessage());
+        setIsLoading(false);
+        return;
+      }
     }
 
     login();
